@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Court Data Fetcher & Mini-Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-gavel"></i> Court Data Fetcher</h1>
+            <p>Fetch case metadata and latest orders/judgments from Indian Courts</p>
+        </header>
+
+        <main>
+            <div class="search-section">
+                <h2>Search Court Cases</h2>
+                <form id="caseForm">
+                    <div class="form-group">
+                        <label for="caseType">Case Type:</label>
+                        <select id="caseType" name="caseType" required>
+                            <option value="">Select Case Type</option>
+                            <option value="CRL">Criminal (CRL)</option>
+                            <option value="CIV">Civil (CIV)</option>
+                            <option value="WP">Writ Petition (WP)</option>
+                            <option value="FAO">First Appeal Original (FAO)</option>
+                            <option value="CM">Civil Misc (CM)</option>
+                            <option value="CRM">Criminal Misc (CRM)</option>
+                            <option value="CS">Civil Suit (CS)</option>
+                            <option value="CC">Criminal Case (CC)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="caseNumber">Case Number:</label>
+                        <input type="text" id="caseNumber" name="caseNumber" placeholder="e.g., 123/2023" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filingYear">Filing Year:</label>
+                        <input type="number" id="filingYear" name="filingYear" placeholder="e.g., 2023" min="2000" max="2024" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="courtType">Court:</label>
+                        <select id="courtType" name="courtType" required>
+                            <option value="">Select Court</option>
+                            <option value="delhi-hc">Delhi High Court</option>
+                            <option value="district-courts">District Courts Portal</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="searchBtn">
+                        <i class="fas fa-search"></i> Search Case
+                    </button>
+                </form>
+            </div>
+
+            <div class="loading" id="loading" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Fetching case data...</p>
+            </div>
+
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <h2>Case Information</h2>
+                <div class="case-details" id="caseDetails">
+                    <!-- Case details will be populated here -->
+                </div>
+                
+                <div class="orders-section">
+                    <h3>Latest Orders/Judgments</h3>
+                    <div class="orders-list" id="ordersList">
+                        <!-- Orders will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="error-message" id="errorMessage" style="display: none;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p id="errorText"></p>
+            </div>
+        </main>
+
+        <div class="query-history">
+            <h3>Recent Searches</h3>
+            <div class="history-list" id="historyList">
+                <!-- Search history will be populated here -->
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2024 Court Data Fetcher. Built for educational purposes.</p>
+            <p><strong>Note:</strong> Currently configured for Delhi High Court scraping. District Courts portal requires additional setup.</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
