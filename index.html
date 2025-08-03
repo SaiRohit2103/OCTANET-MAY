@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delhi High Court Data Fetcher</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-gavel"></i> Delhi High Court Data Fetcher</h1>
+                <p>Fetch case metadata and latest orders/judgments with CAPTCHA bypass</p>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="form-container">
+                <h2>Case Information</h2>
+                <form id="caseForm" class="case-form">
+                    <div class="form-group">
+                        <label for="caseType">Case Type</label>
+                        <select id="caseType" name="caseType" required>
+                            <option value="">Select Case Type</option>
+                            <option value="CRL.A.">Criminal Appeal</option>
+                            <option value="CRL.REV.">Criminal Revision</option>
+                            <option value="W.P.(C)">Writ Petition (Civil)</option>
+                            <option value="W.P.(CRL)">Writ Petition (Criminal)</option>
+                            <option value="FAO">First Appeal from Order</option>
+                            <option value="RFA">Regular First Appeal</option>
+                            <option value="CS(OS)">Civil Suit (Original Side)</option>
+                            <option value="CMP">Civil Miscellaneous Petition</option>
+                            <option value="BAIL APPLN.">Bail Application</option>
+                            <option value="CONTEMPT">Contempt Petition</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="caseNumber">Case Number</label>
+                        <input type="text" id="caseNumber" name="caseNumber" placeholder="e.g., 1234" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filingYear">Filing Year</label>
+                        <input type="number" id="filingYear" name="filingYear" placeholder="e.g., 2024" min="1950" max="2024" required>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-search"></i> Fetch Case Details
+                        </button>
+                        <button type="button" id="clearForm" class="btn-secondary">
+                            <i class="fas fa-eraser"></i> Clear
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="results-container" id="resultsContainer" style="display: none;">
+                <h2>Case Details</h2>
+                <div class="loading" id="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Fetching data from Delhi High Court...
+                </div>
+                <div class="case-details" id="caseDetails"></div>
+            </div>
+
+            <div class="history-container">
+                <h2>Recent Searches</h2>
+                <div class="history-list" id="historyList">
+                    <p class="no-history">No searches yet. Start by entering case details above.</p>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 Delhi High Court Data Fetcher | Built for legal research purposes</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

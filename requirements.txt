@@ -1,0 +1,36 @@
+# Core Flask dependencies
+Flask==2.3.3
+Flask-CORS==4.0.0
+
+# Web scraping and automation
+selenium==4.15.2
+undetected-chromedriver==3.5.4
+requests==2.31.0
+beautifulsoup4==4.12.2
+
+# CAPTCHA solving
+easyocr==1.7.0
+2captcha-python==1.1.3
+Pillow==10.0.1
+
+# Database
+# sqlite3 is built-in Python module
+
+# Utilities
+python-dotenv==1.0.0
+urllib3==2.0.7
+
+# Optional: For better PDF handling
+PyPDF2==3.0.1
+
+# Optional: For advanced image processing
+opencv-python==4.8.1.78
+numpy==1.24.3
+
+# Optional: For machine learning-based CAPTCHA solving
+torch==2.1.0
+torchvision==0.16.0
+
+# Development and testing
+pytest==7.4.3
+pytest-flask==1.3.0
