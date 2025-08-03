@@ -2,17 +2,29 @@
 class CourtDataFetcher {
     constructor() {
         this.apiUrl = '/api';
+        this.captchaAnswer = 0;
         this.init();
     }
 
     init() {
         this.bindEvents();
         this.loadSearchHistory();
+        this.generateCaptcha();
     }
 
     bindEvents() {
         const form = document.getElementById('caseForm');
         form.addEventListener('submit', (e) => this.handleFormSubmit(e));
+        
+        // CAPTCHA event listeners
+        const refreshBtn = document.getElementById('refreshCaptcha');
+        refreshBtn.addEventListener('click', () => this.generateCaptcha());
+        
+        const useRecaptchaCheckbox = document.getElementById('useRecaptcha');
+        useRecaptchaCheckbox.addEventListener('change', (e) => this.toggleCaptchaType(e.target.checked));
+        
+        const captchaInput = document.getElementById('captcha');
+        captchaInput.addEventListener('input', () => this.validateCaptcha());
     }
 
     async handleFormSubmit(e) {
@@ -23,11 +35,18 @@ class CourtDataFetcher {
             caseType: formData.get('caseType'),
             caseNumber: formData.get('caseNumber'),
             filingYear: formData.get('filingYear'),
-            courtType: formData.get('courtType')
+            courtType: formData.get('courtType'),
+            captcha: formData.get('captcha'),
+            recaptchaResponse: this.getRecaptchaResponse()
         };
 
         // Validate form data
         if (!this.validateForm(searchData)) {
+            return;
+        }
+
+        // Validate CAPTCHA
+        if (!this.validateCaptchaForm()) {
             return;
         }
 
@@ -43,8 +62,25 @@ class CourtDataFetcher {
             if (response.success) {
                 this.displayResults(response.data);
                 this.saveToHistory(searchData, response.data);
+                
+                // Generate new CAPTCHA for next search
+                this.generateCaptcha();
+                
+                // Reset reCAPTCHA if it was used
+                const useRecaptcha = document.getElementById('useRecaptcha').checked;
+                if (useRecaptcha && typeof grecaptcha !== 'undefined') {
+                    grecaptcha.reset();
+                }
             } else {
                 this.showError(response.error || 'Failed to fetch case data');
+                
+                // If CAPTCHA error, generate new CAPTCHA
+                if (response.error && response.error.includes('CAPTCHA')) {
+                    this.generateCaptcha();
+                    if (typeof grecaptcha !== 'undefined') {
+                        grecaptcha.reset();
+                    }
+                }
             }
         } catch (error) {
             console.error('Error fetching case data:', error);
@@ -295,6 +331,124 @@ class CourtDataFetcher {
 
     hideError() {
         document.getElementById('errorMessage').style.display = 'none';
+    }
+
+    // CAPTCHA Methods
+    generateCaptcha() {
+        const num1 = Math.floor(Math.random() * 20) + 1;
+        const num2 = Math.floor(Math.random() * 20) + 1;
+        const operators = ['+', '-', '*'];
+        const operator = operators[Math.floor(Math.random() * operators.length)];
+        
+        let question, answer;
+        
+        switch(operator) {
+            case '+':
+                question = `${num1} + ${num2} = ?`;
+                answer = num1 + num2;
+                break;
+            case '-':
+                // Ensure positive result
+                const larger = Math.max(num1, num2);
+                const smaller = Math.min(num1, num2);
+                question = `${larger} - ${smaller} = ?`;
+                answer = larger - smaller;
+                break;
+            case '*':
+                // Use smaller numbers for multiplication
+                const smallNum1 = Math.floor(Math.random() * 10) + 1;
+                const smallNum2 = Math.floor(Math.random() * 10) + 1;
+                question = `${smallNum1} × ${smallNum2} = ?`;
+                answer = smallNum1 * smallNum2;
+                break;
+        }
+        
+        this.captchaAnswer = answer;
+        document.getElementById('captchaQuestion').textContent = question;
+        document.getElementById('captcha').value = '';
+        
+        // Remove any previous validation classes
+        const captchaInput = document.getElementById('captcha');
+        captchaInput.classList.remove('captcha-error', 'captcha-success');
+    }
+
+    validateCaptcha() {
+        const captchaInput = document.getElementById('captcha');
+        const userAnswer = parseInt(captchaInput.value);
+        
+        if (captchaInput.value === '') {
+            captchaInput.classList.remove('captcha-error', 'captcha-success');
+            return false;
+        }
+        
+        if (userAnswer === this.captchaAnswer) {
+            captchaInput.classList.remove('captcha-error');
+            captchaInput.classList.add('captcha-success');
+            return true;
+        } else {
+            captchaInput.classList.remove('captcha-success');
+            captchaInput.classList.add('captcha-error');
+            return false;
+        }
+    }
+
+    toggleCaptchaType(useRecaptcha) {
+        const mathCaptcha = document.querySelector('.captcha-section');
+        const recaptchaSection = document.querySelector('.recaptcha-section');
+        
+        if (useRecaptcha) {
+            mathCaptcha.style.display = 'none';
+            recaptchaSection.style.display = 'block';
+            // Remove required attribute from math captcha
+            document.getElementById('captcha').removeAttribute('required');
+        } else {
+            mathCaptcha.style.display = 'block';
+            recaptchaSection.style.display = 'none';
+            // Add required attribute back to math captcha
+            document.getElementById('captcha').setAttribute('required', '');
+            // Reset reCAPTCHA if it was completed
+            if (typeof grecaptcha !== 'undefined') {
+                grecaptcha.reset();
+            }
+        }
+    }
+
+    getRecaptchaResponse() {
+        const useRecaptcha = document.getElementById('useRecaptcha').checked;
+        if (useRecaptcha && typeof grecaptcha !== 'undefined') {
+            return grecaptcha.getResponse();
+        }
+        return null;
+    }
+
+    validateCaptchaForm() {
+        const useRecaptcha = document.getElementById('useRecaptcha').checked;
+        
+        if (useRecaptcha) {
+            const recaptchaResponse = this.getRecaptchaResponse();
+            if (!recaptchaResponse) {
+                this.showError('Please complete the reCAPTCHA verification');
+                return false;
+            }
+        } else {
+            const captchaInput = document.getElementById('captcha');
+            const userAnswer = parseInt(captchaInput.value);
+            
+            if (!captchaInput.value) {
+                this.showError('Please solve the math problem');
+                captchaInput.classList.add('captcha-error');
+                return false;
+            }
+            
+            if (userAnswer !== this.captchaAnswer) {
+                this.showError('Incorrect answer to the math problem. Please try again.');
+                captchaInput.classList.add('captcha-error');
+                this.generateCaptcha(); // Generate new captcha
+                return false;
+            }
+        }
+        
+        return true;
     }
 }
 

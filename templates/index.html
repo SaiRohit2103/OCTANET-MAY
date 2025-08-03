@@ -6,6 +6,8 @@
     <title>Court Data Fetcher & Mini-Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
     <div class="container">
@@ -50,6 +52,31 @@
                             <option value="delhi-hc">Delhi High Court</option>
                             <option value="district-courts">District Courts Portal</option>
                         </select>
+                    </div>
+
+                    <!-- Simple Math CAPTCHA -->
+                    <div class="form-group captcha-section">
+                        <label for="captcha">Security Check:</label>
+                        <div class="captcha-container">
+                            <div class="captcha-question" id="captchaQuestion">
+                                <!-- CAPTCHA question will be generated here -->
+                            </div>
+                            <input type="number" id="captcha" name="captcha" placeholder="Enter the answer" required>
+                            <button type="button" id="refreshCaptcha" class="refresh-btn">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Google reCAPTCHA (Optional) -->
+                    <div class="form-group recaptcha-section" style="display: none;">
+                        <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+                    </div>
+
+                    <div class="captcha-toggle">
+                        <label>
+                            <input type="checkbox" id="useRecaptcha"> Use Google reCAPTCHA instead
+                        </label>
                     </div>
 
                     <button type="submit" id="searchBtn">

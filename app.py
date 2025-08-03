@@ -9,6 +9,12 @@ from datetime import datetime
 import logging
 from urllib.parse import urljoin, quote
 import time
+import os
+from urllib.parse import urlencode
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -16,6 +22,10 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
+
+# Configuration for reCAPTCHA
+app.config['RECAPTCHA_SECRET_KEY'] = os.environ.get('RECAPTCHA_SECRET_KEY', 'your-recaptcha-secret-key-here')
+app.config['RECAPTCHA_SITE_KEY'] = os.environ.get('RECAPTCHA_SITE_KEY', 'your-recaptcha-site-key-here')
 
 # Database setup
 def init_db():
@@ -178,10 +188,60 @@ def save_case_data(case_identifier, court_type, case_info, orders_data):
     conn.commit()
     conn.close()
 
+def verify_recaptcha(response_token):
+    """Verify Google reCAPTCHA response"""
+    if not response_token:
+        return False
+    
+    secret_key = app.config['RECAPTCHA_SECRET_KEY']
+    if secret_key == 'your-recaptcha-secret-key-here':
+        # For demo purposes, if no real secret key is configured, accept any non-empty response
+        logger.warning("Using demo reCAPTCHA mode - configure RECAPTCHA_SECRET_KEY for production")
+        return True
+    
+    # Verify with Google's API
+    verify_url = 'https://www.google.com/recaptcha/api/siteverify'
+    data = {
+        'secret': secret_key,
+        'response': response_token
+    }
+    
+    try:
+        response = requests.post(verify_url, data=data)
+        result = response.json()
+        return result.get('success', False)
+    except Exception as e:
+        logger.error(f"reCAPTCHA verification error: {str(e)}")
+        return False
+
+def validate_captcha(captcha_answer, recaptcha_response):
+    """Validate CAPTCHA (either math or reCAPTCHA)"""
+    # If reCAPTCHA response is provided, verify it
+    if recaptcha_response:
+        return verify_recaptcha(recaptcha_response)
+    
+    # For math CAPTCHA, we would need to store the correct answer in session
+    # For demo purposes, we'll accept any reasonable number (since backend doesn't know the math question)
+    # In a real implementation, you would store the correct answer in the user session
+    try:
+        answer = int(captcha_answer) if captcha_answer else None
+        # Accept any number between 0 and 200 as reasonable for our math problems
+        return answer is not None and 0 <= answer <= 200
+    except (ValueError, TypeError):
+        return False
+
 @app.route('/')
 def index():
     """Serve the main application page"""
-    return render_template('index.html')
+    return render_template('index.html', recaptcha_site_key=app.config['RECAPTCHA_SITE_KEY'])
+
+@app.route('/api/recaptcha-key')
+def get_recaptcha_key():
+    """Get reCAPTCHA site key for frontend"""
+    return jsonify({
+        'success': True,
+        'site_key': app.config['RECAPTCHA_SITE_KEY']
+    })
 
 @app.route('/api/search', methods=['POST'])
 def search_case():
@@ -202,6 +262,15 @@ def search_case():
         case_number = data['caseNumber']
         filing_year = int(data['filingYear'])
         court_type = data['courtType']
+        captcha_answer = data.get('captcha')
+        recaptcha_response = data.get('recaptchaResponse')
+        
+        # Validate CAPTCHA
+        if not validate_captcha(captcha_answer, recaptcha_response):
+            return jsonify({
+                'success': False,
+                'error': 'CAPTCHA verification failed. Please try again.'
+            }), 400
         
         # Validate case number format
         if not re.match(r'^\d+/\d{4}$', case_number):

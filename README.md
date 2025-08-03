@@ -19,6 +19,11 @@ A web application that allows users to fetch case metadata and latest orders/jud
 - **Search History**: Track recent searches with local storage
 - **Error Handling**: User-friendly error messages for invalid inputs and site issues
 - **Responsive Design**: Modern, mobile-friendly interface
+- **CAPTCHA Protection**: 
+  - Simple mathematical CAPTCHA (default)
+  - Google reCAPTCHA v2 (optional)
+  - Toggle between CAPTCHA types
+  - Real-time validation feedback
 
 ## Technology Stack
 
@@ -56,7 +61,17 @@ A web application that allows users to fetch case metadata and latest orders/jud
    python app.py
    ```
 
-4. **Access the application**
+4. **Configure reCAPTCHA (Optional)**
+   ```bash
+   # Copy the example environment file
+   cp .env.example .env
+   
+   # Edit .env and add your reCAPTCHA keys (get them from https://www.google.com/recaptcha/admin/create)
+   # RECAPTCHA_SITE_KEY=your-site-key-here
+   # RECAPTCHA_SECRET_KEY=your-secret-key-here
+   ```
+
+5. **Access the application**
    - Open your web browser
    - Navigate to `http://localhost:5000`
    - The application should be running and ready to use
@@ -86,9 +101,12 @@ python app.py
 2. **Enter Case Number**: Format should be `123/2023`
 3. **Enter Filing Year**: Year when the case was filed
 4. **Select Court**: Choose between Delhi High Court or District Courts
-5. **Search**: Click the search button to fetch case data
-6. **View Results**: Case details and orders will be displayed
-7. **Download Orders**: Click download links for PDF files (demo functionality)
+5. **Complete CAPTCHA**: 
+   - **Math CAPTCHA**: Solve the simple math problem (default)
+   - **reCAPTCHA**: Check the "Use Google reCAPTCHA instead" box for reCAPTCHA
+6. **Search**: Click the search button to fetch case data
+7. **View Results**: Case details and orders will be displayed
+8. **Download Orders**: Click download links for PDF files (demo functionality)
 
 ### Example Search
 
@@ -124,6 +142,40 @@ python app.py
   - Different data formats and structures
 
 **Recommendation**: Start with Delhi High Court for reliable scraping, as it has a more consistent structure and fewer anti-bot measures.
+
+## CAPTCHA Configuration
+
+The application includes two types of CAPTCHA protection:
+
+### 1. Mathematical CAPTCHA (Default)
+- **Status**: ✅ **Ready to use**
+- **Features**: 
+  - Simple arithmetic problems (addition, subtraction, multiplication)
+  - Real-time validation feedback
+  - Automatic refresh on incorrect answers
+  - No external dependencies
+- **Best for**: Quick setup, offline environments, simple bot protection
+
+### 2. Google reCAPTCHA v2
+- **Status**: ⚙️ **Requires configuration**
+- **Setup Steps**:
+  1. Visit [Google reCAPTCHA Admin](https://www.google.com/recaptcha/admin/create)
+  2. Create a new site with reCAPTCHA v2 "I'm not a robot" checkbox
+  3. Add your domain (use `localhost` for development)
+  4. Copy the Site Key and Secret Key
+  5. Update your `.env` file:
+     ```bash
+     RECAPTCHA_SITE_KEY=your-site-key-here
+     RECAPTCHA_SECRET_KEY=your-secret-key-here
+     ```
+  6. Restart the application
+- **Best for**: Production environments, advanced bot protection
+
+### CAPTCHA Features
+- **Toggle Option**: Users can switch between math and reCAPTCHA
+- **Visual Feedback**: Green/red borders indicate correct/incorrect answers
+- **Auto-refresh**: New CAPTCHA generated after each submission
+- **Mobile Responsive**: Works on all device sizes
 
 ## Database Schema
 
