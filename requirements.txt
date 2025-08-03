@@ -1,0 +1,10 @@
+selenium==4.16.0
+flask==3.0.0
+requests==2.31.0
+beautifulsoup4==4.12.2
+webdriver-manager==4.0.1
+pillow==10.1.0
+pytesseract==0.3.10
+opencv-python==4.8.1.78
+numpy==1.25.2
+python-dotenv==1.0.0

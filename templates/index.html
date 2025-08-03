@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delhi High Court Case Data Fetcher</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: #666;
+            margin: 0;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .status-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+        
+        .status-pending {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+        
+        .status-completed {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+        
+        .status-failed {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+        
+        .results-section {
+            display: none;
+        }
+        
+        .case-detail {
+            background: #fff;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #667eea;
+        }
+        
+        .loading-spinner {
+            display: none;
+        }
+        
+        .history-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .history-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .badge {
+            border-radius: 15px;
+            padding: 0.4rem 0.8rem;
+        }
+        
+        .nav-tabs .nav-link {
+            border-radius: 10px 10px 0 0;
+            border: none;
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <!-- Header -->
+            <div class="header">
+                <h1><i class="fas fa-gavel"></i> Delhi High Court Case Data Fetcher</h1>
+                <p>Search and retrieve case details with automated CAPTCHA handling</p>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="search-tab" data-bs-toggle="tab" data-bs-target="#search" type="button" role="tab">
+                        <i class="fas fa-search"></i> Search Cases
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
+                        <i class="fas fa-history"></i> Search History
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="mainTabContent">
+                <!-- Search Tab -->
+                <div class="tab-pane fade show active" id="search" role="tabpanel">
+                    <!-- Search Form -->
+                    <div class="form-section mt-3">
+                        <h4><i class="fas fa-search"></i> Case Search</h4>
+                        <form id="searchForm">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="caseType" class="form-label">Case Type</label>
+                                    <select class="form-control" id="caseType" required>
+                                        <option value="">Select Case Type</option>
+                                        <option value="WP(C)">WP(C) - Writ Petition (Civil)</option>
+                                        <option value="WP(Crl)">WP(Crl) - Writ Petition (Criminal)</option>
+                                        <option value="CM">CM - Civil Miscellaneous</option>
+                                        <option value="CRL.A">CRL.A - Criminal Appeal</option>
+                                        <option value="FAO">FAO - First Appeal from Order</option>
+                                        <option value="CS(OS)">CS(OS) - Civil Suit (Original Side)</option>
+                                        <option value="CS(COMM)">CS(COMM) - Commercial Suit</option>
+                                        <option value="ARB.A">ARB.A - Arbitration Appeal</option>
+                                        <option value="RFA">RFA - Regular First Appeal</option>
+                                        <option value="RSA">RSA - Regular Second Appeal</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="caseNumber" class="form-label">Case Number</label>
+                                    <input type="text" class="form-control" id="caseNumber" placeholder="e.g., 12345" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="filingYear" class="form-label">Filing Year (Optional)</label>
+                                    <select class="form-control" id="filingYear">
+                                        <option value="">Select Year</option>
+                                        <option value="2024">2024</option>
+                                        <option value="2023">2023</option>
+                                        <option value="2022">2022</option>
+                                        <option value="2021">2021</option>
+                                        <option value="2020">2020</option>
+                                        <option value="2019">2019</option>
+                                        <option value="2018">2018</option>
+                                        <option value="2017">2017</option>
+                                        <option value="2016">2016</option>
+                                        <option value="2015">2015</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Search Case
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Loading and Status -->
+                    <div id="loadingSection" class="loading-spinner text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Processing your request... This may take a few moments.</p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            The system is handling CAPTCHA verification automatically. Please wait...
+                        </div>
+                    </div>
+
+                    <!-- Current Search Status -->
+                    <div id="currentStatus" class="status-section" style="display: none;">
+                        <h5><i class="fas fa-clock"></i> Current Search Status</h5>
+                        <div id="statusCard" class="card status-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title" id="statusTitle">Search Status</h6>
+                                        <p class="card-text" id="statusText">Initializing search...</p>
+                                    </div>
+                                    <span id="statusBadge" class="badge bg-warning">Pending</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="resultsSection" class="results-section">
+                        <h5><i class="fas fa-file-alt"></i> Case Details</h5>
+                        <div id="caseResults"></div>
+                        <div class="text-center mt-3">
+                            <button id="downloadBtn" class="btn btn-success" style="display: none;">
+                                <i class="fas fa-download"></i> Download Results (JSON)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Error Section -->
+                    <div id="errorSection" class="alert alert-danger" style="display: none;">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Error</h6>
+                        <p id="errorMessage"></p>
+                    </div>
+                </div>
+
+                <!-- History Tab -->
+                <div class="tab-pane fade" id="history" role="tabpanel">
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4><i class="fas fa-history"></i> Search History</h4>
+                            <button id="refreshHistory" class="btn btn-outline-primary">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                        <div id="historyList">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading history...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        let currentSearchId = null;
+        let statusCheckInterval = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHistory();
+            
+            // Form submission
+            document.getElementById('searchForm').addEventListener('submit', handleSearch);
+            
+            // Tab change events
+            document.getElementById('history-tab').addEventListener('click', loadHistory);
+            document.getElementById('refreshHistory').addEventListener('click', loadHistory);
+        });
+
+        async function handleSearch(e) {
+            e.preventDefault();
+            
+            const caseType = document.getElementById('caseType').value;
+            const caseNumber = document.getElementById('caseNumber').value;
+            const filingYear = document.getElementById('filingYear').value;
+
+            if (!caseType || !caseNumber) {
+                showError('Please fill in all required fields');
+                return;
+            }
+
+            // Show loading
+            showLoading();
+            
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        case_type: caseType,
+                        case_number: caseNumber,
+                        filing_year: filingYear
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentSearchId = data.search_id;
+                    showStatus('pending', 'Search Initiated', data.message);
+                    startStatusPolling();
+                } else {
+                    showError(data.error || 'Search failed');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        function startStatusPolling() {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+            }
+
+            statusCheckInterval = setInterval(async () => {
+                if (!currentSearchId) return;
+
+                try {
+                    const response = await fetch(`/status/${currentSearchId}`);
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        updateStatus(data);
+                        
+                        if (data.status === 'completed' || data.status === 'failed') {
+                            clearInterval(statusCheckInterval);
+                            hideLoading();
+                            
+                            if (data.status === 'completed' && data.data && data.data.success) {
+                                showResults(data.data.data);
+                            } else {
+                                showError(data.data?.error || 'Search failed');
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Status check error:', error);
+                }
+            }, 2000); // Check every 2 seconds
+        }
+
+        function showLoading() {
+            document.getElementById('loadingSection').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('errorSection').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingSection').style.display = 'none';
+        }
+
+        function showStatus(status, title, message) {
+            const statusSection = document.getElementById('currentStatus');
+            const statusCard = document.getElementById('statusCard');
+            const statusTitle = document.getElementById('statusTitle');
+            const statusText = document.getElementById('statusText');
+            const statusBadge = document.getElementById('statusBadge');
+
+            statusTitle.textContent = title;
+            statusText.textContent = message;
+            
+            statusCard.className = 'card status-card status-' + status;
+            
+            switch(status) {
+                case 'pending':
+                    statusBadge.className = 'badge bg-warning';
+                    statusBadge.textContent = 'Pending';
+                    break;
+                case 'completed':
+                    statusBadge.className = 'badge bg-success';
+                    statusBadge.textContent = 'Completed';
+                    break;
+                case 'failed':
+                    statusBadge.className = 'badge bg-danger';
+                    statusBadge.textContent = 'Failed';
+                    break;
+            }
+
+            statusSection.style.display = 'block';
+        }
+
+        function updateStatus(data) {
+            showStatus(data.status, 'Search Status', `Last updated: ${new Date(data.timestamp).toLocaleString()}`);
+        }
+
+        function showResults(data) {
+            const resultsSection = document.getElementById('resultsSection');
+            const caseResults = document.getElementById('caseResults');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            let html = '';
+
+            // Case basic info
+            if (data.case_number) {
+                html += `<div class="case-detail">
+                    <h6><i class="fas fa-hashtag"></i> Case Number</h6>
+                    <p>${data.case_number}</p>
+                </div>`;
+            }
+
+            if (data.filing_date) {
+                html += `<div class="case-detail">
+                    <h6><i class="fas fa-calendar"></i> Filing Date</h6>
+                    <p>${data.filing_date}</p>
+                </div>`;
+            }
+
+            if (data.status) {
+                html += `<div class="case-detail">
+                    <h6><i class="fas fa-info-circle"></i> Status</h6>
+                    <p>${data.status}</p>
+                </div>`;
+            }
+
+            // Parties
+            if (data.parties && data.parties.length > 0) {
+                html += `<div class="case-detail">
+                    <h6><i class="fas fa-users"></i> Parties</h6>
+                    <ul>`;
+                data.parties.forEach(party => {
+                    html += `<li>${party}</li>`;
+                });
+                html += `</ul></div>`;
+            }
+
+            // Hearings
+            if (data.hearings && data.hearings.length > 0) {
+                html += `<div class="case-detail">
+                    <h6><i class="fas fa-calendar-alt"></i> Hearings</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                data.hearings.forEach(hearing => {
+                    html += `<tr>`;
+                    hearing.forEach(cell => {
+                        html += `<td>${cell}</td>`;
+                    });
+                    html += `</tr>`;
+                });
+                html += `</tbody></table></div></div>`;
+            }
+
+            // Orders
+            if (data.orders && data.orders.length > 0) {
+                html += `<div class="case-detail">
+                    <h6><i class="fas fa-file-alt"></i> Orders</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Order Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                data.orders.forEach(order => {
+                    html += `<tr>`;
+                    order.forEach(cell => {
+                        html += `<td>${cell}</td>`;
+                    });
+                    html += `</tr>`;
+                });
+                html += `</tbody></table></div></div>`;
+            }
+
+            if (!html) {
+                html = `<div class="case-detail">
+                    <p><i class="fas fa-info-circle"></i> Case found but no detailed information available. Check the raw HTML data in the downloaded file.</p>
+                </div>`;
+            }
+
+            caseResults.innerHTML = html;
+            resultsSection.style.display = 'block';
+            
+            // Setup download button
+            downloadBtn.style.display = 'inline-block';
+            downloadBtn.onclick = () => downloadResults(currentSearchId);
+        }
+
+        function showError(message) {
+            const errorSection = document.getElementById('errorSection');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            errorMessage.textContent = message;
+            errorSection.style.display = 'block';
+            
+            document.getElementById('resultsSection').style.display = 'none';
+            hideLoading();
+        }
+
+        async function loadHistory() {
+            const historyList = document.getElementById('historyList');
+            
+            try {
+                const response = await fetch('/history');
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.length === 0) {
+                        historyList.innerHTML = `
+                            <div class="text-center">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No search history found</p>
+                            </div>`;
+                        return;
+                    }
+
+                    let html = '';
+                    data.forEach(item => {
+                        const statusClass = item.status === 'completed' ? 'success' : 
+                                          item.status === 'failed' ? 'danger' : 'warning';
+                        
+                        html += `
+                            <div class="history-item" onclick="viewHistoryItem(${item.id})">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">${item.case_type} ${item.case_number}${item.filing_year ? '/' + item.filing_year : ''}</h6>
+                                        <small class="text-muted">${new Date(item.timestamp).toLocaleString()}</small>
+                                    </div>
+                                    <span class="badge bg-${statusClass}">${item.status}</span>
+                                </div>
+                            </div>`;
+                    });
+
+                    historyList.innerHTML = html;
+                } else {
+                    historyList.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            Failed to load history: ${data.error}
+                        </div>`;
+                }
+            } catch (error) {
+                historyList.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Network error: ${error.message}
+                    </div>`;
+            }
+        }
+
+        async function viewHistoryItem(searchId) {
+            try {
+                const response = await fetch(`/status/${searchId}`);
+                const data = await response.json();
+
+                if (response.ok && data.status === 'completed' && data.data && data.data.success) {
+                    // Switch to search tab and show results
+                    document.getElementById('search-tab').click();
+                    showResults(data.data.data);
+                    currentSearchId = searchId;
+                    showStatus('completed', 'Historical Search', 'Showing historical search results');
+                } else {
+                    alert('No results available for this search');
+                }
+            } catch (error) {
+                alert('Error loading historical data: ' + error.message);
+            }
+        }
+
+        async function downloadResults(searchId) {
+            try {
+                const response = await fetch(`/download/${searchId}`);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `case_data_${searchId}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    alert('Download failed');
+                }
+            } catch (error) {
+                alert('Download error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
